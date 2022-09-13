@@ -321,6 +321,8 @@ rna_xy %>%
 write_csv(rna_wide, 
           file = "data_output/rna_wide.csv")  
 
+write.csv(rna_wide, 
+          file = "data_output/rna_wide2.csv")  
 
 
 
