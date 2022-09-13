@@ -123,8 +123,203 @@ rna %>%
 ## only contain genes located on autosomes and 
 ## associated with a phenotype_description.
 
+rna %>% 
+  filter(chromosome_name != "X" &
+           chromosome_name != "Y")
+
+rna %>% 
+  filter(chromosome_name != "X",
+         chromosome_name != "Y",
+         !is.na(phenotype_description))
+
+rna %>% 
+  filter(!chromosome_name %in% c("X", "Y")) %>% 
+  filter(!is.na(phenotype_description)) %>% 
+  mutate(log_expression = log(expression)) %>% 
+  select(gene, chromosome_name,
+         phenotype_description, 
+         sample, 
+         log_expression)
 
 
+## group_by and summarise
+
+rna %>% 
+  group_by(gene)
+
+rna %>% 
+  group_by(sample)
+
+rna %>% 
+  group_by(sample, gene)
+
+rna %>% 
+  group_by(gene) %>% 
+  summarise(mean_expression = 
+              mean(expression))
+
+rna %>% 
+  group_by(gene) %>% 
+  summarise(mean_expression = 
+              mean(expression), 
+            media_expression = 
+              median(expression))
+
+table(rna$gene)
+
+rna %>% 
+  filter(gene == "Atat1") %>% 
+  pull(expression) %>% 
+  mean()
+
+rna %>% 
+  group_by(gene) %>% 
+  summarise(mean_expression = 
+              mean(expression)) %>% 
+  filter(gene == "Atat1")
+
+rna %>% 
+  group_by(gene, 
+           infection, 
+           time) %>% 
+  summarise(mean_expression = 
+              mean(expression))
+
+## Calculate the mean and median expression 
+## levels of gene “Dok3” by timepoints.
+
+
+rna %>% 
+  group_by(gene, time) %>% 
+  summarise(mean_e = mean(expression),
+            med_e = median(expression)) %>% 
+  filter(gene == "Dok3")
+
+rna %>% 
+  group_by(time) %>% 
+  filter(gene == "Dok3") %>% 
+  summarise(mean_e = mean(expression),
+            med_e = median(expression))
+
+rna %>% 
+  group_by(gene, time, expression)
+
+## count, arrange, desc
+
+rna %>% 
+  count()
+
+rna %>% 
+  count(infection)
+
+rna %>% 
+  group_by(infection) %>% 
+  summarise(n = n())
+
+rna %>% 
+  count(infection, time)
+rna %>% 
+  count(infection, time) %>% 
+  arrange(time)
+
+rna %>% 
+  count(infection, time) %>% 
+  arrange(desc(time))
+
+## Ex 1
+
+count(rna, sample)
+
+rna %>% 
+  count(sample)
+
+## Ex 2
+
+rna %>% 
+  group_by(sample) %>% 
+  summarise(depth = sum(expression)) %>% 
+  arrange(desc(depth)) %>% 
+  head(1)
+  
+rna %>% 
+  filter(sample) %>% 
+  summarise(depth = sum(expression)) %>% 
+  filter(depth == max(depth))
+
+## Ex 3
+
+rna %>% 
+  filter(sample == "GSM2545336") %>% 
+  count(gene_biotype)
+
+## Ex 4
+
+rna %>% 
+  filter(phenotype_description == 
+           "abnormal DNA methylation") %>% 
+  mutate(log_e = log(expression)) %>% 
+  group_by(time, gene) %>% 
+  summarise(mean_e = mean(log_e))
+
+rna %>% 
+  filter(phenotype_description == 
+           "abnormal DNA methylation") %>% 
+  group_by(time, gene) %>% 
+  summarise(mean_e = mean(log(expression)))
+
+## reshaping data: 
+##  pivot_wider() and pivot_longer()
+
+
+rna_exp <- rna %>% 
+  select(gene, sample, expression)
+
+rna_wide <- rna_exp %>% 
+  pivot_wider(names_from = sample, 
+              values_from = expression)
+
+rna %>% 
+  select(gene, sample, expression) %>% 
+  pivot_wider(names_from = sample, 
+              values_from = expression)
+
+rna_wide
+        
+anyNA(rna_wide)
+
+rna_long <- rna_wide %>% 
+  pivot_longer(names_to = "sample", 
+               values_to = "expression",
+               -gene)
+rna_long
+
+rna_wide %>% 
+  pivot_longer(names_to = "sample", 
+               values_to = "expression",
+               2:23)
+
+rna_wide %>% 
+  pivot_longer(names_to = "sample", 
+               values_to = "expression",
+               starts_with("GSM"))
+
+
+## Ex 
+
+rna_xy <- rna %>% 
+  filter(chromosome_name == "X" |
+           chromosome_name == "Y") %>% 
+  group_by(sex, chromosome_name) %>% 
+  summarise(mean = mean(expression))
+
+rna_xy %>% 
+  pivot_wider(names_from = sex,
+              values_from = mean)
+
+## export  
+
+write_csv(rna_wide, 
+          file = "data_output/rna_wide.csv")  
 
 
 
